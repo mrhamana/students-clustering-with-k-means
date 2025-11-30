@@ -1,0 +1,312 @@
+\documentclass{beamer}
+\usetheme{Metropolis}
+\metroset{numbering=none}
+\metroset{sectionpage=none}
+\setbeamertemplate{section in toc}[sections numbered]
+\author{Saugat The Great}
+\title{Anomaly Detection with Isolation Forest and Segmentation with K-means Clustering}
+\subtitle{A Brief Introduction to Unsupervised Learning in Student Data Analysis}
+\addtobeamertemplate{section in toc}{\vspace{-0.5ex}}{}
+\begin{document}
+	
+	% -----------------------------------------------------------
+	% Title Page and Outline
+	% -----------------------------------------------------------
+	\begin{frame}
+		\titlepage
+	\end{frame}
+	
+	\section{Outline} % This section contains the ToC itself
+	\begin{frame}{Presentation Outline}
+		\small
+		\vspace{0.3cm}
+		\tableofcontents
+	\end{frame}
+	
+	% -----------------------------------------------------------
+	% Abstract and Introduction
+	% FIX: Make sections/subsections consistent for the ToC
+	% -----------------------------------------------------------
+	\section{Abstract and Introduction}
+	\subsection{Project Overview} % Added for consistency
+	\begin{frame}{Abstract}
+		The presentation explores the application of unsupervised machine learning techniques to analyze student interaction data.
+		\par
+		\vspace{0.5em}
+		\begin{itemize}
+			\item The workflow focused on robust data preprocessing (handling, cleaning, and feature extraction) to prepare the dataset.
+			\item Anomaly Detection was performed using the highly effective Isolation Forest algorithm to identify irregular student behaviors.
+			\item Segmentation was achieved with K-means Clustering to group students into $\mathbf{K=4}$ distinct behavioral clusters for targeted intervention and analysis.
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Introduction}
+		\small
+		\frametitle{Project Focus and Methodology} % Use frametitle for a clean look
+		Project Focus: This project details the comprehensive process of data ingestion, cleaning, transformation, and analysis. The core objective is the implementation of Anomaly Detection and data segmentation.
+		\par
+		\vspace{0.5em}
+		Methodology: The workflow emphasizes robust data preprocessing (handling, cleaning, and manipulation) to prepare the dataset before applying the machine learning models.
+	\end{frame}
+	
+	\begin{frame}{Introduction}
+		\small
+		\frametitle{Key Technologies and Libraries Used (Part 1/2)} % Use frametitle for a clean look
+		Key Technologies and Libraries:
+		\begin{enumerate}
+			\item NumPy: Essential for high-performance numerical computation and serving as the foundational internal data structure for array manipulation.
+			\item Pandas: Used for efficient data loading, handling, and analysis via DataFrames.
+			\item Matplotlib: Primary library for generating static and interactive visualizations.
+		\end{enumerate}
+	\end{frame}
+	
+	\begin{frame}{Introduction}
+		\small
+		\frametitle{Key Technologies and Libraries Used (Part 2/2)}
+		\par
+		Key Technologies and Libraries:
+		\begin{enumerate}
+			\setcounter{enumi}{3} % Starts the list at number 4
+			\item Seaborn: Statistical visualization library; provides a high-level interface for attractive statistical graphics.
+			\item Scikit-learn (sklearn): Comprehensive library for implementing the machine learning algorithms, including Isolation Forest and K-means.
+		\end{enumerate}
+	\end{frame}
+	
+	\metroset{sectionpage=progressbar}
+	
+	% -----------------------------------------------------------
+	% Person 1: Data Handling and Cleaning
+	% -----------------------------------------------------------
+	\section{Data Handling and Cleaning}
+	\subsection{Data Overview and Filtering} % Consolidate subsections for a cleaner ToC
+	\begin{frame}{Presenter 1: Data Overview and Cleaning}
+		\frametitle{Data Overview and Initial Preparation}
+		Source of the Data
+		\begin{itemize}
+			\item The data is collected from \href{https://archive.ics.uci.edu/dataset/1031/dataset+for+assessing+mathematics+learning+in+higher+education}{UCI Machine Learning Repository}.
+			\item Initial total number of individual interactions: $\mathbf{9546}$.
+			\item The dataset contains $\mathbf{8}$ columns, capturing student country, question metadata (ID, level, topic, subtopic, keywords), and interaction outcome (\texttt{is\_correct}).
+		\end{itemize}
+		
+		Data Information:
+		\begin{itemize}
+			\item Handling Missing Values: A full check revealed no missing values, thus no imputation techniques were necessary.
+			\item Column Renaming: Columns were renamed for enhanced readability and ease of programming, e.g., $\text{'Student ID'} \rightarrow \text{'student\_id'}$.
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Handling Duplicate and Low-Activity Data (P1)}
+		\frametitle{Duplicate Data Filtering}
+		Handling Duplicate Values
+		\begin{itemize}
+			\item $\mathbf{2083}$ rows were found to be identical instances of data.
+			\item Rationale: Given the nature of a single student interaction being logged, identical rows likely represent data collection errors rather than simultaneous events. These duplicates were removed.
+			\item $\text{Final Interaction Count} = 9546 - 2083 = \mathbf{7463}$ interactions remaining.
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Handling Duplicate and Low-Activity Data (P1)}
+		\frametitle{Low-Activity Student Filtering}
+		Filtering Low-Activity Students
+		\begin{itemize}
+			\item Students with fewer than a minimum number of interactions ($\mathbf{MIN\_ATTEMPTS = 5}$) were removed from the analysis.
+			\item Rationale: Students with very few attempts do not provide enough data to form reliable behavioral features, and their inclusion could skew the clustering and anomaly detection processes.
+		\end{itemize}
+		This ensures the final dataset for feature engineering represents only students with meaningful activity.
+	\end{frame}
+	
+	% -----------------------------------------------------------
+	% Person 2: Feature Extraction
+	% -----------------------------------------------------------
+	\section{Feature Engineering}
+	\subsection{Feature Creation and Standardization} % Consolidate subsections for a cleaner ToC
+	\begin{frame}{Presenter 2: Feature Engineering and Normalization}
+		\frametitle{Feature Engineering: Step 1 - Aggregation}
+		The raw interaction data (long format) was aggregated to create a single feature vector (wide format) for each unique student ($\sim 372$ students), forming the basis for analysis.
+		\par
+		\vspace{0.5em}
+		Key Features Extracted ($\mathbf{FEATURE\_COLS}$):
+		\begin{itemize}
+			\item Overall Correct Ratio ($\mathbf{CR}$): Measures general student performance.
+			\begin{equation*}
+				\mathbf{CR} = \frac{\sum \text{Correct Attempts}}{\sum \text{Total Attempts}}
+			\end{equation*}
+			\item Total Attempts: Student's overall volume of engagement.
+		\end{itemize}
+		This process transforms the focus from individual attempts to student-level behavior.
+	\end{frame}
+	
+	\begin{frame}{Presenter 2: Feature Engineering and Normalization}
+		\frametitle{Feature Engineering: Step 2 - Diversity Metrics}
+		\vspace{-1em}
+		Key Features Extracted (Continued):
+		\begin{itemize}
+			\item Unique Diversity Metrics: Count of unique Question IDs, Topics, Subtopics, and Keywords attempted. Measures the breadth of student engagement.
+		\end{itemize}
+		\vfill
+		Rationale for Feature Engineering:
+		\begin{itemize}
+			\item The clustering and anomaly detection algorithms require a single, rich profile for each student, not a long list of individual attempts.
+			\item These aggregated features (Correct Ratio, Attempts, Diversity) capture the fundamental dimensions of student behavior: performance, volume, and scope.
+		\end{itemize}
+	\end{frame}
+	\begin{frame}{Data Standardization (P2)}
+		\frametitle{Standardization for Model Readiness}
+		Machine learning algorithms like K-means and Isolation Forest are highly sensitive to the scale of features. Features with a larger magnitude (e.g., Total Attempts) would unfairly dominate the distance calculations.
+		\par
+		Technique: Standard Scaling (Z-score Normalization)
+		\begin{itemize}
+			\item The features were standardized to have a mean of $\mathbf{0}$ and a standard deviation of $\mathbf{1}$.
+			\item For a feature value $x$, the standardized value $z$ is:
+			\begin{equation*}
+				z = \frac{x - \mu}{\sigma}
+			\end{equation*}
+			Where $\mu$ is the mean and $\sigma$ is the standard deviation of the feature across all students.
+		\end{itemize}
+		This ensures all features contribute equally to the distance metrics used in the subsequent algorithms.
+	\end{frame}
+	
+	% -----------------------------------------------------------
+	% Person 3: Isolation Forest
+	% -----------------------------------------------------------
+	\section{Isolation Forest for Anomaly Detection}
+	\subsection{Theory, Math, and Implementation} % Consolidate subsections for a cleaner ToC
+	\begin{frame}{Presenter 3: Isolation Forest - The Theory}
+		\frametitle{Isolation Forest: Detecting Anomalous Student Behavior}
+		Goal: Identify students whose feature vectors ($\mathbf{x} \in \mathbb{R}^d$) are significantly different from the majority.
+		\par
+		Concept: Unlike distance-based methods that try to define a 'normal' region, Isolation Forest (iForest) works by explicitly isolating anomalies.
+		\par
+		Mechanism: iForest is an ensemble of Isolation Trees (iTrees).
+		\begin{itemize}
+			\item It randomly selects a feature and a split value, recursively partitioning the data.
+			\item Anomalies are few and far from the bulk of the data, meaning they are easier to isolate and require fewer random partitions (splits) to reach a terminal node.
+			\item Normal points are numerous and require more splits to be isolated.
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Mathematical Basis of Isolation Forest (P3)}
+		\frametitle{iForest: Path Length and Anomaly Score Formula}
+		The measure of abnormality is based on the Path Length $\mathbf{h(x)}$ from the root of an iTree to the terminal node containing the instance $\mathbf{x}$.
+		\par
+		\vspace{0.5em}
+		1. Average Path Length ($\mathbf{E[h(x)]}$):
+		\begin{itemize}
+			\item The path length is averaged across all iTrees in the forest.
+			\item A shorter average path length indicates an anomaly (easier to isolate).
+		\end{itemize}
+		\vfill
+		2. Anomaly Score Formula ($\mathbf{s(x)}$):
+		The raw path length is converted into an anomaly score $s(x) \in [0, 1]$:
+		\begin{equation*}
+			s(x) = 2^{-\frac{E[h(x)]}{c(n)}}
+		\end{equation*}
+		Where $\mathbf{c(n)}$ is a normalization factor related to the sample size $\mathbf{n}$.
+	\end{frame}
+	
+	\begin{frame}{Mathematical Basis of Isolation Forest (P3)}
+		\frametitle{Interpreting the Anomaly Score}
+		Interpretation of Score ($\mathbf{s(x)}$):
+		\begin{itemize}
+			\item $s(x) \approx 1$: Indicates an anomaly (very short average path length).
+			\item $s(x) < 0.5$: Indicates a normal instance (longer average path length).
+			\item $s(x) \approx 0.5$: Indicates no distinct anomaly.
+		\end{itemize}
+		\vfill
+		Detection Strategy:
+		Instances with scores above a chosen threshold are flagged as anomalies.
+		\par
+		\vspace{0.5em}
+		Implementation Detail (Contamination):
+		The model was run with a predefined $\mathbf{contamination}$ rate of $\mathbf{0.03}$ ($\mathbf{3\%}$). This parameter implicitly sets the threshold to classify the top 3\% highest-scoring instances as anomalies.
+	\end{frame}
+	
+	% -----------------------------------------------------------
+	% Person 4: K-means Clustering
+	% -----------------------------------------------------------
+	\section{K-means Clustering}
+	\subsection{Algorithm and Evaluation} % Consolidate subsections for a cleaner ToC
+	\begin{frame}{Presenter 4: K-means Clustering for Segmentation}
+		\frametitle{K-means Clustering: Segmenting Student Behavior}
+		Goal: Partition the student feature vectors into $\mathbf{K}$ groups (clusters), where each student belongs to the cluster with the nearest mean (centroid).
+		\par
+		The K-means Algorithm Steps:
+		\begin{enumerate}
+			\item Initialization: Select $\mathbf{K}$ initial cluster centroids (randomly or using $\mathbf{k++}$ initialization).
+			\item Assignment (E-Step): Assign each student vector $\mathbf{x}$ to the cluster $\mathbf{S_j}$ whose centroid $\mathbf{\mu_j}$ is the closest (using $\mathbf{L_2}$ Euclidean distance).
+			\item Update (M-Step): Recalculate the centroid $\mathbf{\mu_j}$ for each cluster $S_j$ as the mean of all points assigned to it.
+			\item Convergence: Repeat steps 2 and 3 until the centroids no longer change or a maximum number of iterations is reached.
+		\end{enumerate}
+	\end{frame}
+	
+	\begin{frame}{K-means Objective Function (P4)}
+		\frametitle{Mathematical Objective: Within-Cluster Sum of Squares (WCSS)}
+		K-means minimizes the Within-Cluster Sum of Squares (WCSS), also known as Inertia. This ensures clusters are compact.
+		\vfill
+		\begin{equation*}
+			J = \sum_{j=1}^{K} \sum_{\mathbf{x} \in S_j} \|\mathbf{x} - \mathbf{\mu_j}\|^2
+		\end{equation*}
+		\vfill
+		Where:
+		\begin{itemize}
+			\item $J$ is the Inertia (WCSS).
+			\item $K$ is the number of clusters.
+			\item $\mathbf{x}$ is a data point (student feature vector).
+			\item $\mathbf{\mu_j}$ is the centroid of cluster $S_j$.
+			\item $\|\dots\|^2$ is the squared Euclidean distance.
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{Cluster Selection and Evaluation (P4)}
+		\frametitle{Selecting $\mathbf{K}$ and Evaluating Cluster Quality}
+		Cluster Number Selection ($\mathbf{K}$):
+		\begin{itemize}
+			\item The Elbow Method (plotting WCSS vs. $\mathbf{K}$) is used to find the "bend" point where diminishing returns are observed.
+			\item
+			\item For this analysis, $\mathbf{K=4}$ was chosen based on combining the Elbow Method result with the highest Silhouette Score for a robust and interpretable set of segments.
+		\end{itemize}
+		\vfill
+		Evaluation Metric: Silhouette Score ($\mathbf{s}$)
+		The score measures how similar an object is to its own cluster compared to other clusters.
+		\begin{equation*}
+			s = \frac{b - a}{\max(a, b)}
+		\end{equation*}
+		Where $\mathbf{a}$ is the mean intra-cluster distance and $\mathbf{b}$ is the mean nearest-cluster distance. Scores closer to $\mathbf{+1}$ indicate dense, well-separated clusters.
+	\end{frame}
+	
+	\begin{frame}{Cluster Profile Interpretation (P4)}
+		\frametitle{Interpreting the $\mathbf{K=4}$ Student Clusters}
+		The final step is to interpret the meaning of the clusters by analyzing their Centroids (mean feature values) for the $\mathbf{K=4}$ segments.
+		\par
+		
+		\par
+		Example Cluster Characteristics (based on centroid analysis):
+		\begin{itemize}
+			\item Cluster 0: The Engaged High Achievers (High $\mathbf{CR}$, very high Diversity)
+			\item Cluster 1: The Struggling but Persistent (Low $\mathbf{CR}$, high Total Attempts)
+			\item Cluster 2: The Focused Low Engagers (Average $\mathbf{CR}$, low Diversity and Total Attempts)
+			\item Cluster 3: The Efficient High Achievers (Very high $\mathbf{CR}$, moderate Attempts)
+		\end{itemize}
+	\end{frame}
+	
+	% -----------------------------------------------------------
+	% Conclusion
+	% -----------------------------------------------------------
+	\section{Conclusion}
+	\subsection{Summary and Future Work} % Added for consistency
+	\begin{frame}{Conclusion and Future Work}
+		\frametitle{Summary of Findings}
+		\begin{itemize}
+			\item The data was successfully preprocessed, resulting in a clean dataset of $\mathbf{7463}$ interactions from robust students.
+			\item Isolation Forest effectively flagged a small fraction ($\mathbf{3\%}$) of students as anomalous, suggesting they exhibit highly irregular behavior compared to the norm.
+			\item K-means Clustering successfully segmented the students into $\mathbf{4}$ distinct behavioral groups, which can be used to tailor educational strategies (e.g., targeted assistance for struggling clusters).
+		\end{itemize}
+		\par
+		Future Work:
+		\begin{itemize}
+			\item Explore DBSCAN or OPTICS clustering for natural density-based groups.
+			\item Incorporate temporal features (e.g., time between attempts) into the feature set.
+		\end{itemize}
+	\end{frame}
+	
+\end{document}
