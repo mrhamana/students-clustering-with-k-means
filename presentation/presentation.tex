@@ -359,9 +359,9 @@
 		\end{itemize}
 	\end{frame}
 	
-	\begin{frame}{Mathematical Basis of Isolation Forest (P3)}
+	\begin{frame}[shrink=5]{Mathematical Basis of Isolation Forest (P3)}
 		\frametitle{iForest: Path Length and Anomaly Score Formula}
-		% --- MATHEMATICAL DETAILS ---
+		\small
 		\textbf{Step 1: Calculate Path Length} $h(x)$
 		\begin{itemize}
 			\item $h(x)$ = number of edges from root to leaf for point $x$ in one tree
@@ -369,7 +369,7 @@
 			\item Shorter $E[h(x)]$ $\Rightarrow$ anomaly; Longer $E[h(x)]$ $\Rightarrow$ normal
 		\end{itemize}
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Step 2: Normalize with} $c(n)$
 		\begin{itemize}
 			\item $c(n) = 2H(n-1) - \frac{2(n-1)}{n}$ where $H(k) = \ln(k) + 0.5772$ (harmonic number)
@@ -377,19 +377,19 @@
 			\item Used to normalize scores across different dataset sizes
 		\end{itemize}
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Step 3: Compute Anomaly Score} $s(x) \in [0, 1]$:
 		\begin{equation*}
 			s(x) = 2^{-\frac{E[h(x)]}{c(n)}}
 		\end{equation*}
 	\end{frame}
 	
-	\begin{frame}{iForest: Score Interpretation}
+	\begin{frame}[shrink=5]{iForest: Score Interpretation}
 		\frametitle{Interpreting the Anomaly Score}
-		% --- SCORE INTERPRETATION ---
+		\small
 		\textbf{Anomaly Score} $s(x) \in [0, 1]$ interpretation:
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\begin{table}
 			\centering
 			\small
@@ -406,7 +406,7 @@
 			\end{tabular}
 		\end{table}
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Why this works?}
 		\begin{itemize}
 			\item When $E[h(x)]$ is very small (easy isolation): $s(x) \rightarrow 1$
@@ -415,9 +415,9 @@
 		\end{itemize}
 	\end{frame}
 	
-	\begin{frame}{iForest: Implementation Details}
+	\begin{frame}[shrink=5]{iForest: Implementation Details}
 		\frametitle{Applying Isolation Forest to Student Data}
-		% --- IMPLEMENTATION ---
+		\small
 		\textbf{Model Configuration}:
 		\begin{itemize}
 			\item \texttt{n\_estimators = 100}: Build 100 isolation trees
@@ -425,7 +425,7 @@
 			\item \texttt{random\_state = 42}: For reproducibility
 		\end{itemize}
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Detection Strategy}:
 		\begin{enumerate}
 			\item Calculate anomaly score $s(x)$ for each of 372 students
@@ -434,8 +434,8 @@
 			\item Output: $+1$ (normal) or $-1$ (anomaly) for each student
 		\end{enumerate}
 		\par
-		\vspace{0.5em}
-		\textbf{Result}: $\mathbf{11}$ students ($\approx 3\%$ of 372) flagged as anomalies
+		\vspace{0.3em}
+		\textbf{Result}: \textbf{11} students ($\approx 3\%$ of 372) flagged as anomalies
 		\par
 		These students exhibit highly irregular patterns in accuracy, engagement, or topic diversity compared to their peers.
 	\end{frame}
@@ -445,20 +445,20 @@
 	% -----------------------------------------------------------
 	\section{K-means Clustering}
 	\subsection{Algorithm and Evaluation} % Consolidate subsections for a cleaner ToC
-	\begin{frame}{Presenter 4: K-means Clustering - Introduction}
+	\begin{frame}[shrink=5]{Presenter 4: K-means Clustering - Introduction}
 		\frametitle{K-means Clustering: Segmenting Student Behavior}
-		% --- INTRODUCTION ---
+		\small
 		\textbf{What is K-means Clustering?}
 		\par
 		K-means is a partitioning algorithm that groups data points into $K$ clusters by minimizing within-cluster variance.
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Goal}: Partition 361 normal students (after removing 11 anomalies) into $K$ behavioral groups.
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Intuition}: Students in the same cluster should be similar to each other, and different from students in other clusters.
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Why K-means?}
 		\begin{itemize}
 			\item Simple, fast, and scalable
@@ -467,8 +467,9 @@
 		\end{itemize}
 	\end{frame}
 	
-	\begin{frame}{K-means Algorithm: Steps 1-2}
+	\begin{frame}[shrink=5]{K-means Algorithm: Steps 1-2}
 		\frametitle{How K-means Works (Part 1/2)}
+		\small
 		\textbf{Step 1 - Initialization}:
 		\begin{itemize}
 			\item Randomly select $K$ students as initial centroids $\mu_1, \mu_2, \dots, \mu_K$
@@ -476,7 +477,7 @@
 			\item This helps avoid poor local optima
 		\end{itemize}
 		\par
-		\vspace{1em}
+		\vspace{0.5em}
 		\textbf{Step 2 - Assignment (E-Step)}:
 		\begin{itemize}
 			\item For each student $x_i$, assign to the nearest centroid:
@@ -488,8 +489,9 @@
 		\end{itemize}
 	\end{frame}
 	
-	\begin{frame}{K-means Algorithm: Steps 3-4}
+	\begin{frame}[shrink=5]{K-means Algorithm: Steps 3-4}
 		\frametitle{How K-means Works (Part 2/2)}
+		\small
 		\textbf{Step 3 - Update (M-Step)}:
 		\begin{itemize}
 			\item Recalculate each centroid as the mean of all students assigned to it:
@@ -500,27 +502,27 @@
 			\item Intuitively: move the cluster center to the average position of its members
 		\end{itemize}
 		\par
-		\vspace{1em}
+		\vspace{0.5em}
 		\textbf{Step 4 - Convergence}:
 		\begin{itemize}
-			\item Repeat steps 2-3 until centroids stop moving (or change very little)
-			\item Typically converges in 10-50 iterations
+			\item Repeat steps 2--3 until centroids stop moving (or change very little)
+			\item Typically converges in 10--50 iterations
 			\item Result: Final cluster assignments for all students
 		\end{itemize}
 	\end{frame}
 	
-	\begin{frame}{K-means Objective Function}
+	\begin{frame}[shrink=5]{K-means Objective Function}
 		\frametitle{Mathematical Objective: Within-Cluster Sum of Squares}
-		% --- MATHEMATICAL DETAILS ---
+		\small
 		\textbf{Optimization Goal}: Minimize the Within-Cluster Sum of Squares (WCSS or Inertia)
 		\par
-		\vspace{1em}
+		\vspace{0.5em}
 		\textbf{Objective Function} $J$:
 		\begin{equation*}
 			J = \sum_{j=1}^{K} \sum_{x_i \in S_j} \|x_i - \mu_j\|^2
 		\end{equation*}
 		\par
-		\vspace{1em}
+		\vspace{0.5em}
 		Where:
 		\begin{itemize}
 			\item $J$ = Total inertia (lower is better)
@@ -531,16 +533,16 @@
 			\item $\|x_i - \mu_j\|^2$ = squared Euclidean distance
 		\end{itemize}
 		\par
-		\vspace{1em}
+		\vspace{0.3em}
 		\textbf{Intuition}: We want compact clusters where students are close to their cluster centers.
 	\end{frame}
 	
-	\begin{frame}{Selecting Optimal K: Elbow Method}
+	\begin{frame}[shrink=5]{Selecting Optimal K: Elbow Method}
 		\frametitle{Method 1: Elbow Method (WCSS vs K)}
-		% --- ELBOW METHOD ---
+		\small
 		\textbf{Approach}: Plot inertia (WCSS) for different values of $K$
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Procedure}:
 		\begin{enumerate}
 			\item Run K-means for $K \in \{2, 3, 4, \dots, 9\}$
@@ -549,7 +551,7 @@
 			\item Look for an "elbow" where $J$ drops sharply then levels off
 		\end{enumerate}
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Interpretation}:
 		\begin{itemize}
 			\item Before elbow: Adding clusters significantly reduces inertia
@@ -557,16 +559,16 @@
 			\item The elbow point = optimal balance between complexity and fit
 		\end{itemize}
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Result}: Elbow observed around $K=4$
 	\end{frame}
 	
-	\begin{frame}{Selecting Optimal K: Silhouette Score}
+	\begin{frame}[shrink=5]{Selecting Optimal K: Silhouette Score}
 		\frametitle{Method 2: Silhouette Score Analysis}
-		% --- SILHOUETTE ---
+		\small
 		\textbf{Silhouette Score}: Measures how well-separated and compact clusters are
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Formula} for student $i$ in cluster $C_j$:
 		\begin{equation*}
 			s(i) = \frac{b(i) - a(i)}{\max\{a(i), b(i)\}}
@@ -577,7 +579,7 @@
 			\item $b(i)$ = mean distance from $i$ to students in nearest other cluster
 		\end{itemize}
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Score Range}: $s(i) \in [-1, +1]$
 		\begin{itemize}
 			\item $s(i) \approx +1$: Well-clustered (far from other clusters)
@@ -585,15 +587,15 @@
 			\item $s(i) \approx -1$: Possibly mis-clustered
 		\end{itemize}
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Average Silhouette Score}: Mean of $s(i)$ across all students for each $K$
 		\par
 		\textbf{Result}: Highest score achieved at $K=4$
 	\end{frame}
 	
-	\begin{frame}{Final K Selection and Implementation}
+	\begin{frame}[shrink=5]{Final K Selection and Implementation}
 		\frametitle{Choosing K=4 and Running Final Model}
-		% --- FINAL CHOICE ---
+		\small
 		\textbf{Decision}: $K = 4$ clusters selected based on:
 		\begin{itemize}
 			\item Elbow point in WCSS plot
@@ -601,7 +603,7 @@
 			\item Interpretability (meaningful student segments)
 		\end{itemize}
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Final Model Configuration}:
 		\begin{itemize}
 			\item \texttt{n\_clusters = 4}
@@ -610,7 +612,7 @@
 			\item Input: 361 normal students (after anomaly removal)
 		\end{itemize}
 		\par
-		\vspace{0.5em}
+		\vspace{0.3em}
 		\textbf{Output}: Each student assigned to one of 4 clusters
 		\par
 		\textbf{Next Step}: Analyze cluster centroids to interpret behavioral patterns
