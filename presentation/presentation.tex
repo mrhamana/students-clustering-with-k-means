@@ -1,5 +1,5 @@
 \documentclass{beamer}
-\usetheme{Metropolis}
+\usetheme{metropolis}
 \metroset{numbering=none}
 \metroset{sectionpage=none}
 \setbeamertemplate{section in toc}[sections numbered]
@@ -27,16 +27,16 @@
 	% Abstract and Introduction
 	% FIX: Make sections/subsections consistent for the ToC
 	% -----------------------------------------------------------
-	\section{Abstract and Introduction}
-	\subsection{Project Overview} % Added for consistency
+
 	\begin{frame}{Abstract}
+		\small
 		The presentation explores the application of unsupervised machine learning techniques to analyze student interaction data.
 		\par
 		\vspace{0.5em}
 		\begin{itemize}
 			\item The workflow focused on robust data preprocessing (handling, cleaning, and feature extraction) to prepare the dataset.
 			\item Anomaly Detection was performed using the highly effective Isolation Forest algorithm to identify irregular student behaviors.
-			\item Segmentation was achieved with K-means Clustering to group students into $\mathbf{K=4}$ distinct behavioral clusters for targeted intervention and analysis.
+			\item Segmentation was achieved with K-means Clustering to group students into $K=4$ distinct behavioral clusters for targeted intervention and analysis.
 		\end{itemize}
 	\end{frame}
 	
@@ -79,29 +79,61 @@
 	% -----------------------------------------------------------
 	\section{Data Handling and Cleaning}
 	\subsection{Data Overview and Filtering} % Consolidate subsections for a cleaner ToC
-	\begin{frame}{Presenter 1: Data Overview and Cleaning}
+	\begin{frame}[shrink=5]{Presenter 1: Data Overview and Cleaning}
 		\frametitle{Data Overview and Initial Preparation}
+		\small
 		Source of the Data
 		\begin{itemize}
 			\item The data is collected from \href{https://archive.ics.uci.edu/dataset/1031/dataset+for+assessing+mathematics+learning+in+higher+education}{UCI Machine Learning Repository}.
-			\item Initial total number of individual interactions: $\mathbf{9546}$.
-			\item The dataset contains $\mathbf{8}$ columns, capturing student country, question metadata (ID, level, topic, subtopic, keywords), and interaction outcome (\texttt{is\_correct}).
+			\item Initial total number of individual interactions: $9546$.
+			\item The dataset contains 8 columns: \texttt{student\_id}, \texttt{country}, \texttt{question\_id}, \texttt{is\_correct}, \texttt{q\_level}, \texttt{topic}, \texttt{subtopic}, \texttt{keywords}.
 		\end{itemize}
 		
 		Data Information:
 		\begin{itemize}
-			\item Handling Missing Values: A full check revealed no missing values, thus no imputation techniques were necessary.
-			\item Column Renaming: Columns were renamed for enhanced readability and ease of programming, e.g., $\text{'Student ID'} \rightarrow \text{'student\_id'}$.
+			\item Handling Missing Values: A full check revealed no missing values.
+			\item Column Renaming: Columns renamed for readability, e.g., 'Student ID' $\rightarrow$ 'student\_id'.
 		\end{itemize}
 	\end{frame}
-	
+	\begin{frame}[shrink=10]{Detailed Feature Description}
+		\frametitle{Raw Dataset Schema}
+		
+		This table summarizes the eight columns used in the initial data ingestion.
+		
+		\vspace{0.3em}
+		\begin{table}
+			\centering
+			\tiny
+			\begin{tabular}{|l|l|p{5cm}|}
+				\hline
+				\textbf{Feature Name} & \textbf{Data Type} & \textbf{Description} \\
+				\hline
+				\texttt{student\_id} & Integer & Unique identifier for each student. \\
+				\hline
+				\texttt{country} & String & Geographic location of the student. \\
+				\hline
+				\texttt{question\_id} & String & Unique identifier for the math question. \\
+				\hline
+				\texttt{is\_correct} & Integer (0/1) & Target: 1 for Correct, 0 for Incorrect. \\
+				\hline
+				\texttt{q\_level} & String & Difficulty level of the question. \\
+				\hline
+				\texttt{topic} & String & Broad math topic (e.g., Algebra). \\
+				\hline
+				\texttt{subtopic} & String & Specific sub-topic within main topic. \\
+				\hline
+				\texttt{keywords} & String & Tags/keywords for question content. \\
+				\hline
+			\end{tabular}
+		\end{table}
+	\end{frame}
 	\begin{frame}{Handling Duplicate and Low-Activity Data (P1)}
 		\frametitle{Duplicate Data Filtering}
 		Handling Duplicate Values
 		\begin{itemize}
-			\item $\mathbf{2083}$ rows were found to be identical instances of data.
+			\item $2083$ rows were found to be identical instances of data.
 			\item Rationale: Given the nature of a single student interaction being logged, identical rows likely represent data collection errors rather than simultaneous events. These duplicates were removed.
-			\item $\text{Final Interaction Count} = 9546 - 2083 = \mathbf{7463}$ interactions remaining.
+			\item $\text{Final Interaction Count} = 9546 - 2083 = 7463$ interactions remaining.
 		\end{itemize}
 	\end{frame}
 	
@@ -109,7 +141,7 @@
 		\frametitle{Low-Activity Student Filtering}
 		Filtering Low-Activity Students
 		\begin{itemize}
-			\item Students with fewer than a minimum number of interactions ($\mathbf{MIN\_ATTEMPTS = 5}$) were removed from the analysis.
+			\item Students with fewer than a minimum number of interactions ($MIN\_ATTEMPTS = 5$) were removed from the analysis.
 			\item Rationale: Students with very few attempts do not provide enough data to form reliable behavioral features, and their inclusion could skew the clustering and anomaly detection processes.
 		\end{itemize}
 		This ensures the final dataset for feature engineering represents only students with meaningful activity.
@@ -121,171 +153,480 @@
 	\section{Feature Engineering}
 	\subsection{Feature Creation and Standardization} % Consolidate subsections for a cleaner ToC
 	\begin{frame}{Presenter 2: Feature Engineering and Normalization}
-		\frametitle{Feature Engineering: Step 1 - Aggregation}
-		The raw interaction data (long format) was aggregated to create a single feature vector (wide format) for each unique student ($\sim 372$ students), forming the basis for analysis.
+		\frametitle{Feature Engineering: Overview}
+		The raw interaction data (long format) was aggregated to create a single feature vector (wide format) for each unique student ($\sim 372$ students after filtering).
 		\par
 		\vspace{0.5em}
-		Key Features Extracted ($\mathbf{FEATURE\_COLS}$):
-		\begin{itemize}
-			\item Overall Correct Ratio ($\mathbf{CR}$): Measures general student performance.
-			\begin{equation*}
-				\mathbf{CR} = \frac{\sum \text{Correct Attempts}}{\sum \text{Total Attempts}}
-			\end{equation*}
-			\item Total Attempts: Student's overall volume of engagement.
-		\end{itemize}
-		This process transforms the focus from individual attempts to student-level behavior.
+		\textbf{Goal}: Transform individual question attempts into comprehensive student behavioral profiles.
+		\par
+		\vspace{0.5em}
+		\textbf{Feature Categories}:
+		\begin{enumerate}
+			\item Basic Performance Metrics
+			\item Difficulty-Level Accuracy
+			\item Topic Diversity
+		\end{enumerate}
+		\par
+		\vspace{0.5em}
+		This process transforms the focus from individual attempts to student-level behavior, enabling machine learning algorithms to identify patterns.
 	\end{frame}
 	
-	\begin{frame}{Presenter 2: Feature Engineering and Normalization}
-		\frametitle{Feature Engineering: Step 2 - Diversity Metrics}
-		\vspace{-1em}
-		Key Features Extracted (Continued):
+	\begin{frame}[shrink=5]{Feature Engineering: Basic Performance Metrics}
+		\frametitle{Category 1: Basic Performance Features}
+		\small
+		\textbf{Feature 1: Average Accuracy}
 		\begin{itemize}
-			\item Unique Diversity Metrics: Count of unique Question IDs, Topics, Subtopics, and Keywords attempted. Measures the breadth of student engagement.
+			\item Measures overall student performance across all attempts
+			\item For student $i$ with $n_i$ total attempts:
+			\begin{equation*}
+				\text{Avg\_Accuracy}_i = \frac{\text{Number of correct answers}}{n_i}
+			\end{equation*}
+			\item Range: $[0, 1]$ where $1 = 100\%$ correct
 		\end{itemize}
-		\vfill
-		Rationale for Feature Engineering:
+		\vspace{0.3em}
+		\textbf{Feature 2: Total Questions}
 		\begin{itemize}
-			\item The clustering and anomaly detection algorithms require a single, rich profile for each student, not a long list of individual attempts.
-			\item These aggregated features (Correct Ratio, Attempts, Diversity) capture the fundamental dimensions of student behavior: performance, volume, and scope.
+			\item Counts the total number of questions attempted
+			\item For student $i$: $\text{Total\_Questions}_i = n_i$
+			\item Indicates engagement volume and persistence
 		\end{itemize}
 	\end{frame}
-	\begin{frame}{Data Standardization (P2)}
+	
+	\begin{frame}[shrink=5]{Feature Engineering: Difficulty-Level Performance (1/2)}
+		\frametitle{Category 2: Accuracy by Question Difficulty}
+		\small
+		\textbf{Motivation}: Students may excel at easy questions but struggle with hard ones, or vice versa. We need to capture performance at each difficulty level.
+		\par
+		\vspace{0.5em}
+		\textbf{Feature Creation}: For each unique difficulty level $\ell$ (e.g., $\ell \in \{1, 2, 3, 4\}$), create separate accuracy features:
+		\par
+		\vspace{0.5em}
+		\textbf{Formula for} $\text{Acc}\_\ell$ (Accuracy at level $\ell$):
+		\begin{equation*}
+			\text{Acc}\_\ell_i = \frac{\text{Correct at level } \ell}{\text{Total attempts at level } \ell}
+		\end{equation*}
+		\par
+		\vspace{0.3em}
+		Where only questions of difficulty level $\ell$ are considered for student $i$.
+	\end{frame}
+	
+	\begin{frame}[shrink=5]{Feature Engineering: Difficulty-Level Performance (2/2)}
+		\frametitle{Category 2: Example Features}
+		\small
+		\textbf{Example Features Created}:
+		\begin{itemize}
+			\item $\text{Acc}\_1$: Accuracy on Level 1 (easiest) questions
+			\item $\text{Acc}\_2$: Accuracy on Level 2 questions
+			\item $\text{Acc}\_3$: Accuracy on Level 3 questions
+			\item $\text{Acc}\_4$: Accuracy on Level 4 (hardest) questions
+		\end{itemize}
+		\par
+		\vspace{0.5em}
+		\textbf{Handling Missing Data}:
+		\begin{itemize}
+			\item If a student didn't attempt any questions at level $\ell$, then $\text{Acc}\_\ell = 0$
+			\item This captures both performance AND engagement patterns
+		\end{itemize}
+		\par
+		\vspace{0.5em}
+		\textbf{Insight}: These features help distinguish high performers from struggling students at different difficulty levels.
+	\end{frame}
+	
+	\begin{frame}[shrink=5]{Feature Engineering: Topic Diversity}
+		\frametitle{Category 3: Topic Diversity Metric}
+		\small
+		\textbf{Feature: Topic Diversity}
+		\begin{itemize}
+			\item Measures the breadth of topics a student has explored
+			\item For student $i$:
+			\begin{equation*}
+				\text{Topic\_Diversity}_i = \text{Count of unique topics attempted}
+			\end{equation*}
+			\item Higher values indicate broader exploration
+		\end{itemize}
+		\vspace{0.5em}
+		\textbf{Example}: If a student attempted questions from Algebra, Calculus, and Geometry:
+		\begin{equation*}
+			\text{Topic\_Diversity} = 3
+		\end{equation*}
+		\par
+		\vspace{0.5em}
+		\textbf{Insight}: This feature distinguishes students who:
+		\begin{itemize}
+			\item Focus narrowly on few topics (specialists)
+			\item Explore widely across curriculum (generalists)
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}[shrink=5]{Feature Engineering: Complete Feature Set}
+		\frametitle{Summary of Engineered Features}
+		\small
+		\textbf{Final Feature Vector} for each student contains:
+		\par
+		\vspace{0.3em}
+		\begin{table}
+			\centering
+			\small
+			\begin{tabular}{|l|l|}
+				\hline
+				\textbf{Feature Name} & \textbf{Description} \\
+				\hline
+				$\text{Avg\_Accuracy}$ & Overall accuracy rate \\
+				\hline
+				$\text{Total\_Questions}$ & Total questions attempted \\
+				\hline
+				$\text{Acc}\_1, \text{Acc}\_2, \dots$ & Accuracy at each difficulty level \\
+				\hline
+				$\text{Topic\_Diversity}$ & Number of unique topics explored \\
+				\hline
+			\end{tabular}
+		\end{table}
+		\par
+		\vspace{0.3em}
+		\textbf{Dimensionality}: Each student represented by approximately 7--10 features (depending on number of difficulty levels)
+		\par
+		\vspace{0.3em}
+		\textbf{Result}: Transformation from $7463$ interactions to $372$ student profiles ready for ML algorithms.
+	\end{frame}
+	\begin{frame}[shrink=5]{Data Standardization (P2)}
 		\frametitle{Standardization for Model Readiness}
+		\small
 		Machine learning algorithms like K-means and Isolation Forest are highly sensitive to the scale of features. Features with a larger magnitude (e.g., Total Attempts) would unfairly dominate the distance calculations.
 		\par
-		Technique: Standard Scaling (Z-score Normalization)
+		\vspace{0.3em}
+		\textbf{Technique}: Standard Scaling (Z-score Normalization)
 		\begin{itemize}
-			\item The features were standardized to have a mean of $\mathbf{0}$ and a standard deviation of $\mathbf{1}$.
+			\item The features were standardized to have a mean of $0$ and a standard deviation of $1$.
 			\item For a feature value $x$, the standardized value $z$ is:
 			\begin{equation*}
 				z = \frac{x - \mu}{\sigma}
 			\end{equation*}
 			Where $\mu$ is the mean and $\sigma$ is the standard deviation of the feature across all students.
 		\end{itemize}
+		\vspace{0.3em}
 		This ensures all features contribute equally to the distance metrics used in the subsequent algorithms.
 	\end{frame}
 	
 	% -----------------------------------------------------------
-	% Person 3: Isolation Forest
+	% Person 3: Isolation Forest - EDITED
 	% -----------------------------------------------------------
 	\section{Isolation Forest for Anomaly Detection}
 	\subsection{Theory, Math, and Implementation} % Consolidate subsections for a cleaner ToC
-	\begin{frame}{Presenter 3: Isolation Forest - The Theory}
-		\frametitle{Isolation Forest: Detecting Anomalous Student Behavior}
-		Goal: Identify students whose feature vectors ($\mathbf{x} \in \mathbb{R}^d$) are significantly different from the majority.
+	\begin{frame}[shrink=5]{Presenter 3: Isolation Forest - Introduction}
+		\frametitle{Isolation Forest: Introduction to Anomaly Detection}
+		\small
+		\textbf{What is Isolation Forest?}
 		\par
-		Concept: Unlike distance-based methods that try to define a 'normal' region, Isolation Forest (iForest) works by explicitly isolating anomalies.
+		Isolation Forest (iForest) is an efficient algorithm for unsupervised anomaly detection based on a simple principle:
+		\begin{center}
+			\textit{"Anomalies are few and different, thus easier to isolate"}
+		\end{center}
 		\par
-		Mechanism: iForest is an ensemble of Isolation Trees (iTrees).
+		\vspace{0.3em}
+		\textbf{Goal}: Identify students with significantly irregular behavioral patterns compared to the general population.
+		\par
+		\vspace{0.3em}
+		\textbf{Key Principle}:
 		\begin{itemize}
-			\item It randomly selects a feature and a split value, recursively partitioning the data.
-			\item Anomalies are few and far from the bulk of the data, meaning they are easier to isolate and require fewer random partitions (splits) to reach a terminal node.
-			\item Normal points are numerous and require more splits to be isolated.
+			\item \textbf{Normal points}: Dense, similar to neighbors, require many splits to isolate
+			\item \textbf{Anomalies}: Sparse, different from others, isolated quickly with few splits
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}[shrink=5]{Isolation Forest: Algorithm Mechanism}
+		\frametitle{How Isolation Forest Works}
+		\small
+		\textbf{Step-by-Step Process}:
+		\par
+		\vspace{0.3em}
+		\textbf{1. Build Isolation Trees (iTrees)}:
+		\begin{itemize}
+			\item Randomly select a feature $f$ from feature columns
+			\item Randomly select a split value $v$ between $\min(f)$ and $\max(f)$
+			\item Split data: points where $f < v$ go left, $f \geq v$ go right
+			\item Repeat recursively until each point is isolated
+		\end{itemize}
+		\par
+		\vspace{0.3em}
+		\textbf{2. Create an Ensemble}: Build $n\_\text{estimators} = 100$ trees
+		\par
+		\vspace{0.3em}
+		\textbf{3. Measure Path Length} $h(x)$:
+		\begin{itemize}
+			\item Count edges from root to leaf for each point
+			\item Shorter paths $\Rightarrow$ easier isolation $\Rightarrow$ likely anomaly
+			\item Longer paths $\Rightarrow$ harder isolation $\Rightarrow$ likely normal
 		\end{itemize}
 	\end{frame}
 	
 	\begin{frame}{Mathematical Basis of Isolation Forest (P3)}
 		\frametitle{iForest: Path Length and Anomaly Score Formula}
-		The measure of abnormality is based on the Path Length $\mathbf{h(x)}$ from the root of an iTree to the terminal node containing the instance $\mathbf{x}$.
+		% --- MATHEMATICAL DETAILS ---
+		\textbf{Step 1: Calculate Path Length} $h(x)$
+		\begin{itemize}
+			\item $h(x)$ = number of edges from root to leaf for point $x$ in one tree
+			\item Average across all trees: $E[h(x)] = \frac{1}{100}\sum_{t=1}^{100} h_t(x)$
+			\item Shorter $E[h(x)]$ $\Rightarrow$ anomaly; Longer $E[h(x)]$ $\Rightarrow$ normal
+		\end{itemize}
 		\par
 		\vspace{0.5em}
-		1. Average Path Length ($\mathbf{E[h(x)]}$):
+		\textbf{Step 2: Normalize with} $c(n)$
 		\begin{itemize}
-			\item The path length is averaged across all iTrees in the forest.
-			\item A shorter average path length indicates an anomaly (easier to isolate).
+			\item $c(n) = 2H(n-1) - \frac{2(n-1)}{n}$ where $H(k) = \ln(k) + 0.5772$ (harmonic number)
+			\item $c(n)$ = average path length in a BST of $n$ points
+			\item Used to normalize scores across different dataset sizes
 		\end{itemize}
-		\vfill
-		2. Anomaly Score Formula ($\mathbf{s(x)}$):
-		The raw path length is converted into an anomaly score $s(x) \in [0, 1]$:
+		\par
+		\vspace{0.5em}
+		\textbf{Step 3: Compute Anomaly Score} $s(x) \in [0, 1]$:
 		\begin{equation*}
 			s(x) = 2^{-\frac{E[h(x)]}{c(n)}}
 		\end{equation*}
-		Where $\mathbf{c(n)}$ is a normalization factor related to the sample size $\mathbf{n}$.
 	\end{frame}
 	
-	\begin{frame}{Mathematical Basis of Isolation Forest (P3)}
+	\begin{frame}{iForest: Score Interpretation}
 		\frametitle{Interpreting the Anomaly Score}
-		Interpretation of Score ($\mathbf{s(x)}$):
-		\begin{itemize}
-			\item $s(x) \approx 1$: Indicates an anomaly (very short average path length).
-			\item $s(x) < 0.5$: Indicates a normal instance (longer average path length).
-			\item $s(x) \approx 0.5$: Indicates no distinct anomaly.
-		\end{itemize}
-		\vfill
-		Detection Strategy:
-		Instances with scores above a chosen threshold are flagged as anomalies.
+		% --- SCORE INTERPRETATION ---
+		\textbf{Anomaly Score} $s(x) \in [0, 1]$ interpretation:
 		\par
 		\vspace{0.5em}
-		Implementation Detail (Contamination):
-		The model was run with a predefined $\mathbf{contamination}$ rate of $\mathbf{0.03}$ ($\mathbf{3\%}$). This parameter implicitly sets the threshold to classify the top 3\% highest-scoring instances as anomalies.
+		\begin{table}
+			\centering
+			\small
+			\begin{tabular}{|c|l|}
+				\hline
+				\textbf{Score Range} & \textbf{Interpretation} \\
+				\hline
+				$s(x) > 0.6$ & Strong anomaly (very short path) \\
+				\hline
+				$s(x) \approx 0.5$ & Boundary case (unclear) \\
+				\hline
+				$s(x) < 0.5$ & Normal instance (long path) \\
+				\hline
+			\end{tabular}
+		\end{table}
+		\par
+		\vspace{0.5em}
+		\textbf{Why this works?}
+		\begin{itemize}
+			\item When $E[h(x)]$ is very small (easy isolation): $s(x) \rightarrow 1$
+			\item When $E[h(x)] \approx c(n)$ (normal): $s(x) = 2^{-1} = 0.5$
+			\item When $E[h(x)]$ is large (hard isolation): $s(x) \rightarrow 0$
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{iForest: Implementation Details}
+		\frametitle{Applying Isolation Forest to Student Data}
+		% --- IMPLEMENTATION ---
+		\textbf{Model Configuration}:
+		\begin{itemize}
+			\item \texttt{n\_estimators = 100}: Build 100 isolation trees
+			\item \texttt{contamination = 0.03}: Expect 3\% of data to be anomalous
+			\item \texttt{random\_state = 42}: For reproducibility
+		\end{itemize}
+		\par
+		\vspace{0.5em}
+		\textbf{Detection Strategy}:
+		\begin{enumerate}
+			\item Calculate anomaly score $s(x)$ for each of 372 students
+			\item Rank students by score (highest = most anomalous)
+			\item Label top 3\% (contamination rate) as anomalies
+			\item Output: $+1$ (normal) or $-1$ (anomaly) for each student
+		\end{enumerate}
+		\par
+		\vspace{0.5em}
+		\textbf{Result}: $\mathbf{11}$ students ($\approx 3\%$ of 372) flagged as anomalies
+		\par
+		These students exhibit highly irregular patterns in accuracy, engagement, or topic diversity compared to their peers.
 	\end{frame}
 	
 	% -----------------------------------------------------------
-	% Person 4: K-means Clustering
+	% Person 4: K-means Clustering - EDITED
 	% -----------------------------------------------------------
 	\section{K-means Clustering}
 	\subsection{Algorithm and Evaluation} % Consolidate subsections for a cleaner ToC
-	\begin{frame}{Presenter 4: K-means Clustering for Segmentation}
+	\begin{frame}{Presenter 4: K-means Clustering - Introduction}
 		\frametitle{K-means Clustering: Segmenting Student Behavior}
-		Goal: Partition the student feature vectors into $\mathbf{K}$ groups (clusters), where each student belongs to the cluster with the nearest mean (centroid).
+		% --- INTRODUCTION ---
+		\textbf{What is K-means Clustering?}
 		\par
-		The K-means Algorithm Steps:
-		\begin{enumerate}
-			\item Initialization: Select $\mathbf{K}$ initial cluster centroids (randomly or using $\mathbf{k++}$ initialization).
-			\item Assignment (E-Step): Assign each student vector $\mathbf{x}$ to the cluster $\mathbf{S_j}$ whose centroid $\mathbf{\mu_j}$ is the closest (using $\mathbf{L_2}$ Euclidean distance).
-			\item Update (M-Step): Recalculate the centroid $\mathbf{\mu_j}$ for each cluster $S_j$ as the mean of all points assigned to it.
-			\item Convergence: Repeat steps 2 and 3 until the centroids no longer change or a maximum number of iterations is reached.
-		\end{enumerate}
+		K-means is a partitioning algorithm that groups data points into $K$ clusters by minimizing within-cluster variance.
+		\par
+		\vspace{0.5em}
+		\textbf{Goal}: Partition 361 normal students (after removing 11 anomalies) into $K$ behavioral groups.
+		\par
+		\vspace{0.5em}
+		\textbf{Intuition}: Students in the same cluster should be similar to each other, and different from students in other clusters.
+		\par
+		\vspace{0.5em}
+		\textbf{Why K-means?}
+		\begin{itemize}
+			\item Simple, fast, and scalable
+			\item Works well with numerical features
+			\item Produces interpretable cluster centroids (average student profiles)
+		\end{itemize}
 	\end{frame}
 	
-	\begin{frame}{K-means Objective Function (P4)}
-		\frametitle{Mathematical Objective: Within-Cluster Sum of Squares (WCSS)}
-		K-means minimizes the Within-Cluster Sum of Squares (WCSS), also known as Inertia. This ensures clusters are compact.
-		\vfill
+	\begin{frame}{K-means Algorithm: Steps 1-2}
+		\frametitle{How K-means Works (Part 1/2)}
+		\textbf{Step 1 - Initialization}:
+		\begin{itemize}
+			\item Randomly select $K$ students as initial centroids $\mu_1, \mu_2, \dots, \mu_K$
+			\item Using \texttt{n\_init=10}: try 10 different random initializations, pick the best result
+			\item This helps avoid poor local optima
+		\end{itemize}
+		\par
+		\vspace{1em}
+		\textbf{Step 2 - Assignment (E-Step)}:
+		\begin{itemize}
+			\item For each student $x_i$, assign to the nearest centroid:
+			\begin{equation*}
+				c_i = \arg\min_{j \in \{1,\dots,K\}} \|x_i - \mu_j\|^2
+			\end{equation*}
+			\item $\|x_i - \mu_j\|^2$ = squared Euclidean distance between student $i$ and centroid $j$
+			\item Intuitively: assign each student to their closest cluster center
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{K-means Algorithm: Steps 3-4}
+		\frametitle{How K-means Works (Part 2/2)}
+		\textbf{Step 3 - Update (M-Step)}:
+		\begin{itemize}
+			\item Recalculate each centroid as the mean of all students assigned to it:
+			\begin{equation*}
+				\mu_j = \frac{1}{|S_j|}\sum_{x_i \in S_j} x_i
+			\end{equation*}
+			\item Where $S_j$ = set of students assigned to cluster $j$
+			\item Intuitively: move the cluster center to the average position of its members
+		\end{itemize}
+		\par
+		\vspace{1em}
+		\textbf{Step 4 - Convergence}:
+		\begin{itemize}
+			\item Repeat steps 2-3 until centroids stop moving (or change very little)
+			\item Typically converges in 10-50 iterations
+			\item Result: Final cluster assignments for all students
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}{K-means Objective Function}
+		\frametitle{Mathematical Objective: Within-Cluster Sum of Squares}
+		% --- MATHEMATICAL DETAILS ---
+		\textbf{Optimization Goal}: Minimize the Within-Cluster Sum of Squares (WCSS or Inertia)
+		\par
+		\vspace{1em}
+		\textbf{Objective Function} $J$:
 		\begin{equation*}
-			J = \sum_{j=1}^{K} \sum_{\mathbf{x} \in S_j} \|\mathbf{x} - \mathbf{\mu_j}\|^2
+			J = \sum_{j=1}^{K} \sum_{x_i \in S_j} \|x_i - \mu_j\|^2
 		\end{equation*}
-		\vfill
+		\par
+		\vspace{1em}
 		Where:
 		\begin{itemize}
-			\item $J$ is the Inertia (WCSS).
-			\item $K$ is the number of clusters.
-			\item $\mathbf{x}$ is a data point (student feature vector).
-			\item $\mathbf{\mu_j}$ is the centroid of cluster $S_j$.
-			\item $\|\dots\|^2$ is the squared Euclidean distance.
+			\item $J$ = Total inertia (lower is better)
+			\item $K$ = Number of clusters (e.g., $K=4$)
+			\item $S_j$ = Set of students in cluster $j$
+			\item $x_i$ = Feature vector for student $i$
+			\item $\mu_j$ = Centroid (mean) of cluster $j$
+			\item $\|x_i - \mu_j\|^2$ = squared Euclidean distance
 		\end{itemize}
+		\par
+		\vspace{1em}
+		\textbf{Intuition}: We want compact clusters where students are close to their cluster centers.
 	\end{frame}
 	
-	\begin{frame}{Cluster Selection and Evaluation (P4)}
-		\frametitle{Selecting $\mathbf{K}$ and Evaluating Cluster Quality}
-		Cluster Number Selection ($\mathbf{K}$):
+	\begin{frame}{Selecting Optimal K: Elbow Method}
+		\frametitle{Method 1: Elbow Method (WCSS vs K)}
+		% --- ELBOW METHOD ---
+		\textbf{Approach}: Plot inertia (WCSS) for different values of $K$
+		\par
+		\vspace{0.5em}
+		\textbf{Procedure}:
+		\begin{enumerate}
+			\item Run K-means for $K \in \{2, 3, 4, \dots, 9\}$
+			\item Calculate $J$ (inertia) for each $K$
+			\item Plot $J$ vs $K$
+			\item Look for an "elbow" where $J$ drops sharply then levels off
+		\end{enumerate}
+		\par
+		\vspace{0.5em}
+		\textbf{Interpretation}:
 		\begin{itemize}
-			\item The Elbow Method (plotting WCSS vs. $\mathbf{K}$) is used to find the "bend" point where diminishing returns are observed.
-			\item
-			\item For this analysis, $\mathbf{K=4}$ was chosen based on combining the Elbow Method result with the highest Silhouette Score for a robust and interpretable set of segments.
+			\item Before elbow: Adding clusters significantly reduces inertia
+			\item After elbow: Diminishing returns (minor improvement)
+			\item The elbow point = optimal balance between complexity and fit
 		\end{itemize}
-		\vfill
-		Evaluation Metric: Silhouette Score ($\mathbf{s}$)
-		The score measures how similar an object is to its own cluster compared to other clusters.
+		\par
+		\vspace{0.5em}
+		\textbf{Result}: Elbow observed around $K=4$
+	\end{frame}
+	
+	\begin{frame}{Selecting Optimal K: Silhouette Score}
+		\frametitle{Method 2: Silhouette Score Analysis}
+		% --- SILHOUETTE ---
+		\textbf{Silhouette Score}: Measures how well-separated and compact clusters are
+		\par
+		\vspace{0.5em}
+		\textbf{Formula} for student $i$ in cluster $C_j$:
 		\begin{equation*}
-			s = \frac{b - a}{\max(a, b)}
+			s(i) = \frac{b(i) - a(i)}{\max\{a(i), b(i)\}}
 		\end{equation*}
-		Where $\mathbf{a}$ is the mean intra-cluster distance and $\mathbf{b}$ is the mean nearest-cluster distance. Scores closer to $\mathbf{+1}$ indicate dense, well-separated clusters.
+		Where:
+		\begin{itemize}
+			\item $a(i)$ = mean distance from $i$ to other students in same cluster
+			\item $b(i)$ = mean distance from $i$ to students in nearest other cluster
+		\end{itemize}
+		\par
+		\vspace{0.5em}
+		\textbf{Score Range}: $s(i) \in [-1, +1]$
+		\begin{itemize}
+			\item $s(i) \approx +1$: Well-clustered (far from other clusters)
+			\item $s(i) \approx 0$: On cluster boundary
+			\item $s(i) \approx -1$: Possibly mis-clustered
+		\end{itemize}
+		\par
+		\vspace{0.5em}
+		\textbf{Average Silhouette Score}: Mean of $s(i)$ across all students for each $K$
+		\par
+		\textbf{Result}: Highest score achieved at $K=4$
+	\end{frame}
+	
+	\begin{frame}{Final K Selection and Implementation}
+		\frametitle{Choosing K=4 and Running Final Model}
+		% --- FINAL CHOICE ---
+		\textbf{Decision}: $K = 4$ clusters selected based on:
+		\begin{itemize}
+			\item Elbow point in WCSS plot
+			\item Highest Silhouette Score
+			\item Interpretability (meaningful student segments)
+		\end{itemize}
+		\par
+		\vspace{0.5em}
+		\textbf{Final Model Configuration}:
+		\begin{itemize}
+			\item \texttt{n\_clusters = 4}
+			\item \texttt{n\_init = 10}: Run 10 times with different initializations
+			\item \texttt{random\_state = 42}: For reproducibility
+			\item Input: 361 normal students (after anomaly removal)
+		\end{itemize}
+		\par
+		\vspace{0.5em}
+		\textbf{Output}: Each student assigned to one of 4 clusters
+		\par
+		\textbf{Next Step}: Analyze cluster centroids to interpret behavioral patterns
 	\end{frame}
 	
 	\begin{frame}{Cluster Profile Interpretation (P4)}
-		\frametitle{Interpreting the $\mathbf{K=4}$ Student Clusters}
-		The final step is to interpret the meaning of the clusters by analyzing their Centroids (mean feature values) for the $\mathbf{K=4}$ segments.
+		\frametitle{Interpreting the $K=4$ Student Clusters}
+		The final step is to interpret the meaning of the clusters by analyzing their Centroids (mean feature values) for the $K=4$ segments.
 		\par
-		
-		\par
-		Example Cluster Characteristics (based on centroid analysis):
+			vspace{0.5em}
+		Example Cluster Characteristics (based on standardized centroid analysis):
 		\begin{itemize}
-			\item Cluster 0: The Engaged High Achievers (High $\mathbf{CR}$, very high Diversity)
-			\item Cluster 1: The Struggling but Persistent (Low $\mathbf{CR}$, high Total Attempts)
-			\item Cluster 2: The Focused Low Engagers (Average $\mathbf{CR}$, low Diversity and Total Attempts)
-			\item Cluster 3: The Efficient High Achievers (Very high $\mathbf{CR}$, moderate Attempts)
+			\item Cluster 0: The Engaged High Achievers (High Correct Rate, very high Diversity)
+			\item Cluster 1: The Struggling but Persistent (Low Correct Rate, high Total Attempts)
+			\item Cluster 2: The Focused Low Engagers (Average Correct Rate, low Diversity and Total Attempts)
+			\item Cluster 3: The Efficient High Achievers (Very high Correct Rate, moderate Attempts)
 		\end{itemize}
 	\end{frame}
 	
@@ -297,9 +638,9 @@
 	\begin{frame}{Conclusion and Future Work}
 		\frametitle{Summary of Findings}
 		\begin{itemize}
-			\item The data was successfully preprocessed, resulting in a clean dataset of $\mathbf{7463}$ interactions from robust students.
-			\item Isolation Forest effectively flagged a small fraction ($\mathbf{3\%}$) of students as anomalous, suggesting they exhibit highly irregular behavior compared to the norm.
-			\item K-means Clustering successfully segmented the students into $\mathbf{4}$ distinct behavioral groups, which can be used to tailor educational strategies (e.g., targeted assistance for struggling clusters).
+			\item The data was successfully preprocessed, resulting in a clean dataset of $7463$ interactions from robust students.
+			\item Isolation Forest effectively flagged a small fraction ($3\%$) of students as anomalous, suggesting they exhibit highly irregular behavior compared to the norm.
+			\item K-means Clustering successfully segmented the students into $4$ distinct behavioral groups, which can be used to tailor educational strategies (e.g., targeted assistance for struggling clusters).
 		\end{itemize}
 		\par
 		Future Work:
